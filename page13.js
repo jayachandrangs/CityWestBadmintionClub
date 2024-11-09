@@ -60,6 +60,19 @@ document.addEventListener('DOMContentLoaded', function() {
         renderPlayers();
     }
 
+    function exportToCSV() {
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + sortedPlayers.map(player => `${player.name},${player.division}`).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "players.csv");
+        document.body.appendChild(link); // Required for FF
+
+        link.click(); // This will download the data file named "players.csv"
+    }
+
     renderPlayers();
 
     // Action button functionalities
@@ -74,8 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('allotCourtMixedButton').addEventListener('click', () => {
-      alert("Allot Court Mixed action selected."); 
-      renderPlayers(); // Refresh display for now
+      exportToCSV(); // Export players to CSV when this button is clicked
     });
 
     document.getElementById('allotCourtSimpleButton').addEventListener('click', () => {
