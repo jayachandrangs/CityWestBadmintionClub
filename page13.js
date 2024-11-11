@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const playerList = document.getElementById('playerList');
     let sortedPlayers = JSON.parse(sessionStorage.getItem('sortedPlayers')) || [];
 
-    // Initialize variables
     let ROTATENUM = 0; // To track the free number index
     const FREENUM = Array(15).fill(0); // Array to hold free numbers
 
@@ -12,13 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const playerNameDiv = document.createElement('div');
         playerNameDiv.className = 'player-name';
-        playerNameDiv.innerText = `${player.name}`; // Only show player name
+        playerNameDiv.innerText = `${player.name || 'Unknown Player'}`; // Default name if undefined
         
         const numberDiv = document.createElement('div');
         numberDiv.className = 'player-number';
         numberDiv.innerText = player.number !== null ? player.number : '';
 
-        // Click event to toggle number allocation
         playerNameDiv.onclick = () => togglePlayerNumber(player);
 
         row.appendChild(playerNameDiv);
@@ -28,9 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderPlayers() {
-        // Sort players by their assigned numbers in ascending order
         sortedPlayers.sort((a, b) => (a.number || Infinity) - (b.number || Infinity));
-        
         playerList.innerHTML = '';
         sortedPlayers.forEach(player => {
             playerList.appendChild(createPlayerRow(player));
@@ -41,28 +37,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentNumber = player.number;
 
         if (currentNumber !== null) {
-            // Remove the number from the player
             ROTATENUM++;
-            FREENUM[ROTATENUM - 1] = currentNumber; // Store removed number in FREENUM
-            player.number = null; // Set player's number to null
+            FREENUM[ROTATENUM - 1] = currentNumber;
+            player.number = null;
         } else if (ROTATENUM > 0) {
-            // Assign a free number to the player
             const freeNumber = FREENUM[ROTATENUM - 1];
-            player.number = freeNumber; // Assign the free number to the player
-            FREENUM[ROTATENUM - 1] = 0; // Reset the free number slot
-            ROTATENUM--; // Decrease ROTATENUM
+            player.number = freeNumber;
+            FREENUM[ROTATENUM - 1] = 0;
+            ROTATENUM--;
         }
 
-        // Update sessionStorage with new player data
         sessionStorage.setItem('sortedPlayers', JSON.stringify(sortedPlayers));
-        
-        // Re-render players to reflect changes
         renderPlayers();
     }
 
     function exportToCSV() {
         const csvContent = "data:text/csv;charset=utf-8," 
-            + sortedPlayers.map(player => `${player.name},${player.division}`).join("\n");
+            + sortedPlayers.map(player => `${player.number || ''},${player.name || 'Unnamed'},${player.division || ''}`).join("\n");
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -82,16 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('refreshButton').addEventListener('click', () => {
       sortedPlayers = JSON.parse(sessionStorage.getItem('sortedPlayers')) || [];
-      renderPlayers(); // Refresh the display with current data from sessionStorage
+      renderPlayers();
       alert("Screen refreshed with current data.");
     });
 
     document.getElementById('allotCourtMixedButton').addEventListener('click', () => {
       exportToCSV(); // Export players to CSV when this button is clicked
+      setTimeout(() => {
+        window.location.href = 'MPlay.html'; // Redirect to MPlay.html after 500ms to allow CSV download
+      }, 500); // Adjust time as necessary for download delay
     });
 
     document.getElementById('allotCourtSimpleButton').addEventListener('click', () => {
-      alert("Allot Court Simple action selected."); 
+      alert("Allot Court Simple action selected.");
       renderPlayers(); // Refresh display for now
     });
 });

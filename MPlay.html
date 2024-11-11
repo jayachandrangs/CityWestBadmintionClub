@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Allocation - MPlay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: teal;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .input-section, .output-section {
+            margin-bottom: 20px;
+        }
+        #fileInput {
+            display: block;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #007B9A;
+        }
+        #output {
+            white-space: pre-wrap;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Court Allocation</h1>
+        
+        <div class="input-section">
+            <h2>Import Players List</h2>
+            <input type="file" id="fileInput" accept=".csv">
+            <button id="processButton">Import and Process</button>
+        </div>
+        
+        <div class="output-section">
+            <h2>Allocation Results</h2>
+            <div id="output"></div>
+            <button id="downloadButton">Download Allocation</button>
+        </div>
+    </div>
+
+    <script src="MPlay.js"></script>
+    <script>
+        document.getElementById('processButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csvContent = e.target.result;
+                    const result = runAllocation(csvContent);
+                    document.getElementById('output').textContent = result;
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a CSV file.');
+            }
+        });
+
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const content = document.getElementById('output').textContent;
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'court_allocation_and_variables.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
