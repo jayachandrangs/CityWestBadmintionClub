@@ -225,20 +225,47 @@ function session3courtAllocation() {
         }
     });
 
-    function allocatePlayersToCourtForSession3(courtPrefix, dummyCheck) {
+function allocatePlayersToCourtForSession3(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
                 courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
-            for (let i = 1; i <= 4; i++) {
-                let availablePlayers = finalPlayersList.filter(p => p.alloted === 0);
+            let availablePlayers = finalPlayersList.filter(p => p.alloted === 0);
+            
+            // Allocate Player 1 and 2 (highest division)
+            for (let i = 1; i <= 2; i++) {
                 if (availablePlayers.length > 0) {
-                    let minDivision = Math.min(...availablePlayers.map(p => p.secondaryDivision));
-                    let eligiblePlayers = availablePlayers.filter(p => p.secondaryDivision === minDivision);
+                    let maxDivision = Math.max(...availablePlayers.map(p => p.primaryDivision));
+                    let eligiblePlayers = availablePlayers.filter(p => p.primaryDivision === maxDivision);
                     let selectedPlayer = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
                     courtAllocation[`${courtPrefix}P${i}`] = selectedPlayer.name;
                     selectedPlayer.alloted = 1;
+                    availablePlayers = availablePlayers.filter(p => p !== selectedPlayer);
+                } else {
+                    courtAllocation[`${courtPrefix}P${i}`] = "No player available";
+                }
+            }
+
+            // Allocate Player 3 and 4 (lower division)
+            let targetDivision = courtAllocation[`${courtPrefix}P1`] !== "No player available" 
+                ? finalPlayersList.find(p => p.name === courtAllocation[`${courtPrefix}P1`]).primaryDivision
+                : Math.max(...availablePlayers.map(p => p.primaryDivision));
+
+            for (let i = 3; i <= 4; i++) {
+                if (availablePlayers.length > 0) {
+                    let eligiblePlayers = [];
+                    for (let diff of [2, 1.5, 1, 0.5, 0]) {
+                        eligiblePlayers = availablePlayers.filter(p => p.primaryDivision === targetDivision - diff);
+                        if (eligiblePlayers.length > 0) break;
+                    }
+                    if (eligiblePlayers.length === 0) {
+                        eligiblePlayers = availablePlayers;
+                    }
+                    let selectedPlayer = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+                    courtAllocation[`${courtPrefix}P${i}`] = selectedPlayer.name;
+                    selectedPlayer.alloted = 1;
+                    availablePlayers = availablePlayers.filter(p => p !== selectedPlayer);
                 } else {
                     courtAllocation[`${courtPrefix}P${i}`] = "No player available";
                 }
@@ -251,8 +278,6 @@ function session3courtAllocation() {
     allocatePlayersToCourtForSession3("S3C1", 25);
     allocatePlayersToCourtForSession3("S3C2", 20);
     allocatePlayersToCourtForSession3("S3C3", 5);
-
-
 
     // Reset alloted state for next session
     finalPlayersList.forEach(player => player.alloted = 0);
@@ -288,14 +313,41 @@ function session4courtAllocation() {
                 courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
-            for (let i = 1; i <= 4; i++) {
-                let availablePlayers = finalPlayersList.filter(p => p.alloted === 0);
+            let availablePlayers = finalPlayersList.filter(p => p.alloted === 0);
+            
+            // Allocate Player 1 and 2 (lowest secondary division)
+            for (let i = 1; i <= 2; i++) {
                 if (availablePlayers.length > 0) {
                     let minDivision = Math.min(...availablePlayers.map(p => p.secondaryDivision));
                     let eligiblePlayers = availablePlayers.filter(p => p.secondaryDivision === minDivision);
                     let selectedPlayer = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
                     courtAllocation[`${courtPrefix}P${i}`] = selectedPlayer.name;
                     selectedPlayer.alloted = 1;
+                    availablePlayers = availablePlayers.filter(p => p !== selectedPlayer);
+                } else {
+                    courtAllocation[`${courtPrefix}P${i}`] = "No player available";
+                }
+            }
+
+            // Allocate Player 3 and 4 (higher division)
+            let targetDivision = courtAllocation[`${courtPrefix}P1`] !== "No player available" 
+                ? finalPlayersList.find(p => p.name === courtAllocation[`${courtPrefix}P1`]).secondaryDivision
+                : Math.min(...availablePlayers.map(p => p.secondaryDivision));
+
+            for (let i = 3; i <= 4; i++) {
+                if (availablePlayers.length > 0) {
+                    let eligiblePlayers = [];
+                    for (let diff of [2, 1.5, 1, 0.5, 0]) {
+                        eligiblePlayers = availablePlayers.filter(p => p.secondaryDivision === targetDivision + diff);
+                        if (eligiblePlayers.length > 0) break;
+                    }
+                    if (eligiblePlayers.length === 0) {
+                        eligiblePlayers = availablePlayers;
+                    }
+                    let selectedPlayer = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+                    courtAllocation[`${courtPrefix}P${i}`] = selectedPlayer.name;
+                    selectedPlayer.alloted = 1;
+                    availablePlayers = availablePlayers.filter(p => p !== selectedPlayer);
                 } else {
                     courtAllocation[`${courtPrefix}P${i}`] = "No player available";
                 }
@@ -308,8 +360,6 @@ function session4courtAllocation() {
     allocatePlayersToCourtForSession4("S4C1", 25);
     allocatePlayersToCourtForSession4("S4C2", 20);
     allocatePlayersToCourtForSession4("S4C3", 5);
-
-
 
     // Reset alloted state for next session
     finalPlayersList.forEach(player => player.alloted = 0);
