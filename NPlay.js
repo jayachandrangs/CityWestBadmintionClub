@@ -1,41 +1,95 @@
 // Global variables
 let finalPlayersList = [];
 let NOD, DOF, PTRS1, NPTR, RESTS, PTRS1_DOF, RESTE;
-//NOD ( Number of dummies), DOF (Dummies overflow),PTRS1 (player to rest step1),NPTR (Number of player to rest)
 let courtAllocation = {};
 
-function processCSV(csvContent) {
-    const lines = csvContent.trim().split('\n');
-    if (lines.length !== 25) {
-        throw new Error('The CSV file must contain exactly 25 lines of data.');
+// Initialize court and rested player variables
+for (let s = 1; s <= 5; s++) {
+    for (let c = 1; c <= 5; c++) {
+        for (let p = 1; p <= 4; p++) {
+            courtAllocation[`S${s}C${c}P${p}`] = "";
+        }
+    }
+    for (let r = 1; r <= 5; r++) {
+        courtAllocation[`S${s}R${r}`] = "DUMMY";
+    }
+}
+
+function processPlayerData(playerDataString) {
+    const playerDataLines = playerDataString.trim().split('\n');
+    if (playerDataLines.length !== 25) {
+        throw new Error('The player data must contain exactly 25 players.');
     }
 
-    finalPlayersList = lines.map((line, index) => {
-        const [number, playerName, playerDivision] = line.split(',');
-        if (!number || !playerName || !playerDivision) {
-            console.error(`Invalid data in line ${index + 1}: ${line}`);
-            return null;
-        }
-        const primaryDivision = parseFloat(playerDivision);
+    finalPlayersList = playerDataLines.map(line => {
+        const [number, name, division] = line.split(',');
+        const primaryDivision = parseFloat(division);
         return {
             number: parseInt(number),
-            name: playerName.trim(),
+            name: name.trim(),
             primaryDivision: primaryDivision,
-            secondaryDivision: Number.isInteger(primaryDivision) ? primaryDivision : primaryDivision + 0.5,
+            secondaryDivision: Number.isInteger(primaryDivision) 
+                ? primaryDivision 
+                : primaryDivision + 0.5,
             alloted: 0
         };
-    }).filter(player => player !== null);
+    });
 
+    calculateVariables();
+}
+
+function calculateVariables() {
     NOD = finalPlayersList.filter(player => player.name.includes('xDUMMY')).length;
-    // Calculate PTRS1_DOF as a decimal value
     PTRS1_DOF = NOD / 5.0;
-    PTRS1 = Math.floor(PTRS1_DOF); // Extract integer part
-    DOF = Math.round((PTRS1_DOF - PTRS1) * 10) / 10; // Extract decimal part and round to one decimal place
-    DOF = Math.round(DOF * 5); // Multiply the rounded decimal by 5
+    PTRS1 = Math.floor(PTRS1_DOF);
+    DOF = Math.round((PTRS1_DOF - PTRS1) * 10) / 10;
+    DOF = Math.round(DOF * 5);
     NPTR = 5 - (DOF + PTRS1);
     RESTS = 1;
     RESTE = (RESTS + (NPTR - 1));
+
+    console.log(`NOD: ${NOD}, DOF: ${DOF}, PTRS1: ${PTRS1}, NPTR: ${NPTR}, RESTS: ${RESTS}, RESTE: ${RESTE}`);
 }
+
+function runAllocation() {
+    try {
+        const storedData = sessionStorage.getItem('playerDataForMPlay');
+        if (storedData) {
+            console.log("Data found in sessionStorage. Processing...");
+            processPlayerData(storedData);
+        } else {
+            throw new Error("No player data available in sessionStorage.");
+        }
+
+        session1courtAllocation();
+        session2courtAllocation();
+        session3courtAllocation();
+        session4courtAllocation();
+        session5courtAllocation();
+        const output = generateOutput();
+        displayOutput(output);
+        return output;
+    } catch (error) {
+        const errorMessage = `Error: ${error.message}`;
+        displayOutput(errorMessage);
+        return errorMessage;
+    }
+}
+
+function displayOutput(output) {
+    const outputElement = document.getElementById('output');
+    if (outputElement) {
+        outputElement.textContent = output;
+    } else {
+        console.error('Output element not found');
+    }
+}
+
+// Call runAllocation when the page loads
+document.addEventListener('DOMContentLoaded', runAllocation);
+
+// Expose the runAllocation function to the global scope
+window.runAllocation = runAllocation;
 
 function session1courtAllocation() {
     if (NPTR > 0) {
@@ -394,19 +448,19 @@ let output = "Session 1 Court Allocations\n";
     return output;
 }
 
-function runAllocation(csvContent) {
-    try {
-        processCSV(csvContent);
-        session1courtAllocation();
-        session2courtAllocation();
-        session3courtAllocation();
-        session4courtAllocation();
-        session5courtAllocation();
-        return generateOutput();
-    } catch (error) {
-        return `Error: ${error.message}`;
-    }
-}
+//function runAllocation() {
+//    try {
+//        processCSV(csvContent);
+//        session1courtAllocation();
+//        session2courtAllocation();
+//        session3courtAllocation();
+//        session4courtAllocation();
+//        session5courtAllocation();
+//        return generateOutput();
+//    } catch (error) {
+//        return `Error: ${error.message}`;
+//    }
+//}
 
 // Expose the runAllocation function to the global scope
 window.runAllocation = runAllocation;

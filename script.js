@@ -25,6 +25,7 @@ async function loadPlayers() {
 
   try {
     const response = await fetch("https://raw.githubusercontent.com/jayachandrangs/CityWestBadmintionClub/main/docs/playerlist.csv");
+    await new Promise(resolve => setTimeout(resolve, 500));
     if (!response.ok) {
       throw new Error('CSV not found on GitHub.');
     }

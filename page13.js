@@ -77,15 +77,75 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("Screen refreshed with current data.");
     });
 
-    document.getElementById('allotCourtMixedButton').addEventListener('click', () => {
-      exportToCSV(); // Export players to CSV when this button is clicked
-      setTimeout(() => {
-        window.location.href = 'MPlay.html'; // Redirect to MPlay.html after 500ms to allow CSV download
-      }, 500); // Adjust time as necessary for download delay
+   document.getElementById('allotCourtMixedButton').addEventListener('click', () => {
+     try {
+       const playersWithNumbers = sortedPlayers
+         .filter(player => player.number !== null)
+         .map(player => `${player.number},${player.name},${player.division}`);
+
+       // Check if exactly 25 players are selected
+       if (playersWithNumbers.length !== 25) {
+         alert("25 players are not selected. Please select exactly 25 players.");
+         return;
+       }
+
+       // Sort the array by player number
+       playersWithNumbers.sort((a, b) => {
+         const numA = parseInt(a.split(',')[0]);
+         const numB = parseInt(b.split(',')[0]);
+         return numA - numB;
+      });
+
+       // Store the data as a single string in sessionStorage
+       sessionStorage.setItem('playerDataForMPlay', playersWithNumbers.join('\n'));
+
+       // Export to CSV (if you still want to keep this functionality)
+       //exportToCSV();
+
+       alert("Player selections confirmed. Redirecting to MPlay page.");
+       window.location.href = 'MPlay.html';
+     } catch (error) {
+       console.error("Error confirming player selections:", error);
+      alert("There was an error confirming player selections. Please try again.");
+     }
+   });
+
+    document.getElementById('refreshButton').addEventListener('click', () => {
+      sortedPlayers = JSON.parse(sessionStorage.getItem('sortedPlayers')) || [];
+      renderPlayers();
+      alert("Screen refreshed with current data.");
     });
 
-    document.getElementById('allotCourtSimpleButton').addEventListener('click', () => {
-      alert("Allot Court Simple action selected.");
-      renderPlayers(); // Refresh display for now
-    });
+   document.getElementById('allotCourtSimpleButton').addEventListener('click', () => {
+     try {
+       const playersWithNumbers = sortedPlayers
+         .filter(player => player.number !== null)
+         .map(player => `${player.number},${player.name},${player.division}`);
+
+       // Check if exactly 25 players are selected
+       if (playersWithNumbers.length !== 25) {
+         alert("25 players are not selected. Please select exactly 25 players.");
+         return;
+       }
+
+       // Sort the array by player number
+       playersWithNumbers.sort((a, b) => {
+         const numA = parseInt(a.split(',')[0]);
+         const numB = parseInt(b.split(',')[0]);
+         return numA - numB;
+      });
+
+       // Store the data as a single string in sessionStorage
+       sessionStorage.setItem('playerDataForMPlay', playersWithNumbers.join('\n'));
+
+       // Export to CSV (if you still want to keep this functionality)
+       //exportToCSV();
+
+       alert("Player selections confirmed. Redirecting to MPlay page.");
+       window.location.href = 'NPlay.html';
+     } catch (error) {
+       console.error("Error confirming player selections:", error);
+      alert("There was an error confirming player selections. Please try again.");
+     }
+   });
 });
