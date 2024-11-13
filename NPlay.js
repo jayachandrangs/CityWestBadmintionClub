@@ -116,7 +116,7 @@ function session1courtAllocation() {
     function allocatePlayersToCourtForSession1(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
-                courtAllocation[`${courtPrefix}P${i}`] = "DUMMY";
+                courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
             for (let i = 1; i <= 4; i++) {
@@ -171,7 +171,7 @@ function session2courtAllocation() {
     function allocatePlayersToCourtForSession2(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
-                courtAllocation[`${courtPrefix}P${i}`] = "DUMMY";
+                courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
             for (let i = 1; i <= 4; i++) {
@@ -228,7 +228,7 @@ function session3courtAllocation() {
     function allocatePlayersToCourtForSession3(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
-                courtAllocation[`${courtPrefix}P${i}`] = "DUMMY";
+                courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
             for (let i = 1; i <= 4; i++) {
@@ -285,7 +285,7 @@ function session4courtAllocation() {
     function allocatePlayersToCourtForSession4(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
-                courtAllocation[`${courtPrefix}P${i}`] = "DUMMY";
+                courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
             for (let i = 1; i <= 4; i++) {
@@ -346,7 +346,7 @@ function session5courtAllocation() {
     function allocatePlayersToCourtForSession5(courtPrefix, dummyCheck) {
         if (NOD >= dummyCheck) {
             for (let i = 1; i <= 4; i++) {
-                courtAllocation[`${courtPrefix}P${i}`] = "DUMMY";
+                courtAllocation[`${courtPrefix}P${i}`] = "BLOCKED";
             }
         } else {
             for (let i = 1; i <= 4; i++) {

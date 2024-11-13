@@ -22,10 +22,6 @@
         .input-section, .output-section {
             margin-bottom: 20px;
         }
-        #fileInput {
-            display: block;
-            margin: 10px 0;
-        }
         button {
             background-color: #008CBA;
             color: white;
@@ -33,6 +29,9 @@
             border: none;
             cursor: pointer;
             margin: 5px;
+            display: block;
+            width: 100%;
+            max-width: 300px;
         }
         button:hover {
             background-color: #007B9A;
@@ -43,6 +42,11 @@
             padding: 10px;
             border-radius: 5px;
         }
+        .button-container {
+            display: flex;
+            justify-content: center; /* Center the buttons horizontally */
+            gap: 10px; /* Space between buttons */
+        }
     </style>
 </head>
 <body>
@@ -50,48 +54,59 @@
         <h1>Court Allocation</h1>
         
         <div class="input-section">
-            <h2>Import Players List</h2>
-            <input type="file" id="fileInput" accept=".csv">
-            <button id="processButton">Import and Process</button>
+            <h2>Allocation Actions</h2>
         </div>
         
         <div class="output-section">
             <h2>Allocation Results</h2>
             <div id="output"></div>
-            <button id="downloadButton">Download Allocation</button>
+            <div class="button-container">
+                <button id="downloadButton">Download Allocation</button>
+                <button id="verifyButton">Verify Allocation</button>
+                <button id="importWeeklyButton">Import Weekly Allocation</button>
+            </div>
         </div>
     </div>
 
-    <script src="NPlay.js"></script>
-    <script>
-        document.getElementById('processButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const csvContent = e.target.result;
-                    const result = runAllocation(csvContent);
-                    document.getElementById('output').textContent = result;
-                };
-                reader.readAsText(file);
-            } else {
-                alert('Please select a CSV file.');
-            }
-        });
+<script src="NPlay.js"></script>
+<script>
+    document.getElementById('importWeeklyButton').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent any default action
+        window.location.href = 'Playday.html';
+    });
 
-        document.getElementById('downloadButton').addEventListener('click', function() {
-            const content = document.getElementById('output').textContent;
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'court_allocation_and_variables.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    </script>
+    document.getElementById('verifyButton').addEventListener('click', function() {
+        // Add verification logic here
+        alert('Verification process started.');
+        // You might want to call a function from MPlay.js here
+    });
+
+    document.getElementById('downloadButton').addEventListener('click', function() {
+        const content = document.getElementById('output').textContent;
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        // Generate the date-time string in YYYYMMDDHHMMSS format
+        const now = new Date();
+        const dateTimeString = String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0') +
+                               String(now.getSeconds()).padStart(2, '0');
+  
+        // Append date-time to the filename
+        const filename = `${dateTimeString}_court_.csv`;
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+</script>
 </body>
 </html>
