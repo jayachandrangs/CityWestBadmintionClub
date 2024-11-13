@@ -84,9 +84,19 @@
             const content = document.getElementById('output').textContent;
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
+           // Generate the date-time string in YYYYMMDDHHMMSS format
+            const now = new Date();
+            const dateTimeString = String(now.getMonth() + 1).padStart(2, '0') +
+                                   String(now.getDate()).padStart(2, '0') +
+                                   String(now.getHours()).padStart(2, '0') +
+                                   String(now.getMinutes()).padStart(2, '0') +
+                                   String(now.getSeconds()).padStart(2, '0');
+      
+      // Append date-time to the filename
+            const filename = `${dateTimeString}_court_.csv`;
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'court_allocation_and_variables.csv';
+            a.download = a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

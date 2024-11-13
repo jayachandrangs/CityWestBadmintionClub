@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Allocation - Drag and Drop with Swaps</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: teal;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #fileInput {
+            display: block;
+            margin: 10px 0;
+        }
+        .session {
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .court, .rested {
+            display: inline-block;
+            width: 45%;
+            vertical-align: top;
+            margin-right: 10px;
+            padding: 10px;
+            background-color: #555;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+        .court h3, .rested h3 {
+            text-align: center;
+        }
+        .player {
+            background-color: #007B9A;
+            color: white;
+            padding: 5px;
+            margin: 5px 0;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 3px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #007B9A;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Court Allocation - Drag and Drop with Swaps</h1>
+        
+        <div class="input-section">
+            <h2>Upload CSV File</h2>
+            <input type="file" id="fileInput" accept=".csv">
+        </div>
+        
+        <div id="sessionContainer"></div>
+
+        <div class="button-container">
+            <button id="downloadButton">Download CSV with Changes</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csvContent = e.target.result;
+                    const sessionsData = parseCSV(csvContent);
+                    displaySessions(sessionsData);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a CSV file.');
+            }
+        });
+
+        function parseCSV(csvContent) {
+            const lines = csvContent.split('\n');
+            const sessionLines = [1, 9, 17, 25, 33]; // Adjust for where each session starts
+            const restedLines = [7, 15, 23, 31, 39]; // Adjust for where each rested list is
+            let sessionsData = [];
+
+            sessionLines.forEach((line, index) => {
+                const courtPlayers = lines[line - 1] ? lines[line - 1].split(',') : [];
+                const restedPlayers = lines[restedLines[index] - 1] ? lines[restedLines[index] - 1].split(',') : [];
+                
+                let courts = [];  // Store players for each court
+                courtPlayers.forEach((player, i) => {
+                    const courtIndex = Math.floor(i / 4);  // Assuming 4 players per court
+                    if (!courts[courtIndex]) courts[courtIndex] = [];
+                    courts[courtIndex].push(player);
+                });
+
+                sessionsData.push({ session: index + 1, courts, restedPlayers });
+            });
+            return sessionsData;
+        }
+
+        function displaySessions(sessionsData) {
+            const sessionContainer = document.getElementById('sessionContainer');
+            sessionContainer.innerHTML = ''; // Clear existing sessions
+
+            sessionsData.forEach(data => {
+                const sessionDiv = document.createElement('div');
+                sessionDiv.classList.add('session');
+                sessionDiv.innerHTML = `<h2>Session ${data.session}</h2>`;
+
+                data.courts.forEach((courtPlayers, courtIndex) => {
+                    const courtDiv = document.createElement('div');
+                    courtDiv.classList.add('court');
+                    courtDiv.innerHTML = `<h3>Court ${courtIndex + 1}</h3>`;
+
+                    courtPlayers.forEach(player => {
+                        const playerDiv = createPlayerDiv(player);
+                        courtDiv.appendChild(playerDiv);
+                    });
+
+                    sessionDiv.appendChild(courtDiv);
+                });
+
+                const restedDiv = document.createElement('div');
+                restedDiv.classList.add('rested');
+                restedDiv.innerHTML = '<h3>Rested Players</h3>';
+
+                data.restedPlayers.forEach(player => {
+                    const playerDiv = createPlayerDiv(player);
+                    restedDiv.appendChild(playerDiv);
+                });
+
+                sessionDiv.appendChild(restedDiv);
+                sessionContainer.appendChild(sessionDiv);
+            });
+        }
+
+        function createPlayerDiv(playerName) {
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player');
+            playerDiv.textContent = playerName;
+            playerDiv.setAttribute('draggable', 'true');
+            playerDiv.addEventListener('dragstart', handleDragStart);
+            playerDiv.addEventListener('dragover', handleDragOver);
+            playerDiv.addEventListener('drop', handleDrop);
+            return playerDiv;
+        }
+
+        let draggedPlayer = null;
+
+        function handleDragStart(e) {
+            draggedPlayer = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.textContent);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedPlayer && e.target.classList.contains('player')) {
+                const tempText = draggedPlayer.textContent;
+                draggedPlayer.textContent = e.target.textContent;
+                e.target.textContent = tempText;
+            }
+        }
+
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const csvContent = generateCSVContent();
+            downloadCSV(csvContent, 'updated_court_allocation.csv');
+        });
+
+        function generateCSVContent() {
+            let csvContent = '';
+            const sessions = document.querySelectorAll('.session');
+
+            sessions.forEach(session => {
+                const courts = session.querySelectorAll('.court');
+                let courtPlayers = [];
+
+                courts.forEach(court => {
+                    const players = Array.from(court.querySelectorAll('.player'))
+                        .map(playerDiv => playerDiv.textContent);
+                    courtPlayers.push(...players);
+                });
+
+                const restedPlayers = Array.from(session.querySelector('.rested').children)
+                    .filter(div => div.classList.contains('player'))
+                    .map(div => div.textContent);
+
+                csvContent += `${courtPlayers.join(',')}\n,,,,,,\n${restedPlayers.join(',')}\n`;
+            });
+
+            return csvContent.trim();
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
