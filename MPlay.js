@@ -255,7 +255,7 @@ function allocatePlayersToCourtForSession3(courtPrefix, dummyCheck) {
             for (let i = 3; i <= 4; i++) {
                 if (availablePlayers.length > 0) {
                     let eligiblePlayers = [];
-                    for (let diff of [2, 1.5, 1, 0.5, 0]) {
+                    for (let diff of [1.5, 1, 0.5, 0]) {
                         eligiblePlayers = availablePlayers.filter(p => p.primaryDivision === targetDivision - diff);
                         if (eligiblePlayers.length > 0) break;
                     }

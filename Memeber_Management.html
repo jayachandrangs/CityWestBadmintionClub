@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Members Management</title> <!-- Updated title -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full height to allow positioning */
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            flex: 1; /* Allow container to grow and take available space */
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50; /* Updated header color to match buttons */
+            color: white; /* Ensure text is readable */
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50; /* Button color */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049; /* Darker shade on hover */
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            text-align: center; 
+        }
+        .selected {
+            background-color: #e0e0e0; /* Highlight selected row */
+        }
+        #csvFile {
+            display: none; /* Hide default file input */
+        }
+        .file-upload {
+            border: 2px solid #4CAF50; /* Style for custom file input */
+            display: inline-block;
+            padding: 6px 12px; 
+            cursor: pointer; 
+            background-color:#fff; 
+            color:#4CAF50; 
+            border-radius :4px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Club Members Management</h1> <!-- Updated heading -->
+        <div id="editor"></div>
+        <div id="errorMessage" class="error"></div>
+    </div>
+
+    <div class="button-group">
+        <label for="csvFile" class="file-upload">Choose CSV File</label>
+        <input type="file" id="csvFile" accept=".csv" onchange="loadCSV()">
+        <button onclick="addRow()">Add Row</button>
+        <button onclick="deleteSelectedRow()">Delete Row</button>
+        <button onclick="saveCSV()">Save CSV</button>
+        <button onclick="saveByForce()">Save by Force</button>
+    </div>
+
+    <script>
+        let csvData = [];
+        let selectedRow = null;
+
+        function loadCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+
+            Papa.parse(file, {
+                complete: function(results) {
+                    if (results.data[0].length !== 2) {
+                        showError("The CSV file should have exactly two columns: Name and Division");
+                        return;
+                    }
+                    csvData = results.data.filter(row => row.length === 2);
+                    displayCSV();
+                }
+             });
+         }
+
+         function displayCSV() {
+             const editor = document.getElementById('editor');
+             editor.innerHTML = '';
+
+             const table = document.createElement('table');
+             const headerRow = table.insertRow();
+             
+             ['Name', 'Division'].forEach(header => {
+                 const th = document.createElement('th');
+                 th.textContent = header;
+                 headerRow.appendChild(th);
+             });
+
+             for (let i = 1; i < csvData.length; i++) {
+                 addTableRow(table, csvData[i]);
+             }
+
+             editor.appendChild(table);
+         }
+
+         function addTableRow(table, rowData = ['', '']) {
+             const row = table.insertRow();
+             row.addEventListener('click', () => selectRow(row));
+             rowData.forEach((cell, index) => {
+                 const td = row.insertCell();
+                 const input = document.createElement('input');
+                 input.type = 'text';
+                 input.value = cell; 
+                 input.required = true; 
+                 input.addEventListener('change', (e) => { 
+                     const rowIndex = row.rowIndex - 1; // Subtract to account for header
+                     if (csvData[rowIndex]) { 
+                         csvData[rowIndex][index] = e.target.value; 
+                     } else { 
+                         csvData[rowIndex] = ['', '']; 
+                         csvData[rowIndex][index] = e.target.value; 
+                     } 
+                 });
+                 td.appendChild(input); 
+             });
+         }
+
+         function addRow() { 
+             const table = document.querySelector('table'); 
+             if (table) { 
+                 addTableRow(table); 
+                 csvData.push(['', '']); 
+             } else { 
+                 showError("Please load a CSV file first."); 
+             } 
+         }
+
+         function selectRow(row) { 
+             if (selectedRow) { 
+                 selectedRow.classList.remove('selected'); 
+             } 
+             selectedRow = row; 
+             selectedRow.classList.add('selected'); 
+         }
+
+         function deleteSelectedRow() { 
+             if (!selectedRow) { 
+                 showError("Please select a row to delete."); 
+                 return; 
+             }
+
+             const name = selectedRow.cells[0].getElementsByTagName('input')[0].value; 
+
+             if (confirm(`Are you sure you want to delete the row for "${name}"?`)) { 
+                 const rowIndex = selectedRow.rowIndex - 1; // Subtract to account for header
+                 csvData.splice(rowIndex, 1); // Remove from data
+                 selectedRow.remove(); // Remove from table
+                 selectedRow = null; // Clear selection
+                 showError(''); // Clear any previous error messages
+             } 
+         }
+
+         function saveCSV() { 
+             const invalidRows = csvData.filter(row => !row[0].trim() || !row[1].trim()); 
+
+             if (invalidRows.length > 0) { 
+                 showError("Cannot save. Some rows have missing values."); 
+                 return; 
+             } 
+
+             saveProcessedCSV(csvData); // Save valid data
+         }
+
+         function saveByForce() { 
+             const validData = csvData.filter(row => row[0].trim() && row[1].trim()); // Filter valid rows
+             saveProcessedCSV(validData); // Save valid data
+         }
+
+         function saveProcessedCSV(data) { 
+             const header = data.shift(); // Remove header for processing
+             
+             data.sort((a, b) => a[0].localeCompare(b[0])); // Sort by name
+
+             const uniqueData = data.filter((row, index, self) => index === self.findIndex((t) => t[0] === row[0])); // Remove duplicates
+
+             uniqueData.unshift(header); // Add header back
+
+             const csv = Papa.unparse(uniqueData); // Convert to CSV
+
+             const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' }); // Create blob
+
+              const link = document.createElement("a"); 
+
+              if (link.download !== undefined) { 
+
+                  const url = URL.createObjectURL(blob); 
+
+                  link.setAttribute("href", url); 
+
+                  link.setAttribute("download", "PlayerList.csv"); // Change filename here
+                  
+                  link.style.visibility ='hidden'; 
+
+                  document.body.appendChild(link); 
+
+                  link.click(); 
+
+                  document.body.removeChild(link); 
+
+              } 
+
+              showError(''); // Clear any previous error messages
+          }
+
+          function showError(message) { 
+              const errorDiv = document.getElementById('errorMessage'); 
+
+              errorDiv.textContent= message;  
+          }   
+     </script>
+</body>
+</html>
