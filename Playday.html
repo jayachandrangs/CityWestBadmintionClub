@@ -152,6 +152,7 @@
                     const csvData = event.target.result;
                     parseCSVData(csvData);
                     displayCurrentSession();
+                    playPeriodicBeep();
                     startCountdown();
                 };
                 reader.readAsText(file);
@@ -217,6 +218,12 @@
             const vh = window.innerHeight;
             document.body.style.minHeight = `${vh}px`;
             document.getElementById('output').style.marginBottom = `${vh * 0.2}px`;
+        }
+
+        function playPeriodicBeep() {
+             setInterval(() => {
+             playBeep(100); // Play a short beep every 5 minutes
+             }, 5.33 * 60 * 1000); // 5 minutes in milliseconds
         }
 
         function playBeep(duration) {
