@@ -76,9 +76,8 @@
     });
 
     document.getElementById('verifyButton').addEventListener('click', function() {
-        // Add verification logic here
-        alert('Verification process started.');
-        // You might want to call a function from MPlay.js here
+        event.preventDefault(); // Prevent any default action
+        window.location.href = 'Verify.html';
     });
 
     document.getElementById('downloadButton').addEventListener('click', function() {
